@@ -21,7 +21,10 @@ const successResponse = {
 
 describe('REST client', () => {
   it('can make GET request', async () => {
-    const client = new RestClient(domain, 'dummy-token');
+    const client = new RestClient({
+      domain,
+      accessToken: 'dummy-token',
+    });
 
     fetchMock.mockResponseOnce(JSON.stringify(successResponse));
 
@@ -29,8 +32,12 @@ describe('REST client', () => {
     assertHttpRequest({method: 'GET', domain, path: '/admin/api/unstable/products.json'});
   });
 
+
   it('can make POST request with JSON data', async () => {
-    const client = new RestClient(domain, 'dummy-token');
+    const client = new RestClient({
+      domain,
+      accessToken: 'dummy-token',
+    });
 
     fetchMock.mockResponseOnce(JSON.stringify(successResponse));
 
@@ -52,7 +59,10 @@ describe('REST client', () => {
   });
 
   it('can make POST request with form data', async () => {
-    const client = new RestClient(domain, 'dummy-token');
+    const client = new RestClient({
+      domain,
+      accessToken: 'dummy-token',
+    });
 
     fetchMock.mockResponseOnce(JSON.stringify(successResponse));
 
@@ -74,7 +84,10 @@ describe('REST client', () => {
   });
 
   it('can make PUT request with JSON data', async () => {
-    const client = new RestClient(domain, 'dummy-token');
+    const client = new RestClient({
+      domain,
+      accessToken: 'dummy-token',
+    });
 
     fetchMock.mockResponseOnce(JSON.stringify(successResponse));
 
@@ -96,7 +109,10 @@ describe('REST client', () => {
   });
 
   it('can make DELETE request', async () => {
-    const client = new RestClient(domain, 'dummy-token');
+    const client = new RestClient({
+      domain,
+      accessToken: 'dummy-token',
+    });
 
     fetchMock.mockResponseOnce(JSON.stringify(successResponse));
 
@@ -107,7 +123,10 @@ describe('REST client', () => {
   });
 
   it('merges custom headers with the default ones', async () => {
-    const client = new RestClient(domain, 'dummy-token');
+    const client = new RestClient({
+      domain,
+      accessToken: 'dummy-token',
+    });
 
     const customHeaders: Record<string, string> = {
       'X-Not-A-Real-Header': 'some_value',
@@ -125,8 +144,15 @@ describe('REST client', () => {
 
   it('includes pageInfo of type PageInfo in the returned object for calls with next or previous pages', async () => {
     const params = getDefaultPageInfo();
-    const client = new RestClient(domain, 'dummy-token');
-    const linkHeaders = [`<${params.previousPageUrl}>; rel="previous"`, `<${params.nextPageUrl}>; rel="next"`];
+    const client = new RestClient({
+      domain,
+      accessToken: 'dummy-token',
+    });
+    const linkHeaders = [
+      `<${params.previousPageUrl}>; rel="previous"`,
+      `<${params.nextPageUrl}>; rel="next"`,
+      'This invalid info header will be ignored',
+    ];
 
     fetchMock.mockResponses([JSON.stringify(successResponse), {headers: {link: linkHeaders.join(', ')}}]);
 
@@ -138,7 +164,10 @@ describe('REST client', () => {
 
   it('is able to make subsequent get requests to either pageInfo.nextPage or pageInfo.prevPage', async () => {
     const params = getDefaultPageInfo();
-    const client = new RestClient(domain, 'dummy-token');
+    const client = new RestClient({
+      domain,
+      accessToken: 'dummy-token',
+    });
     const linkHeaders = [`<${params.previousPageUrl}>; rel="previous"`, `<${params.nextPageUrl}>; rel="next"`];
 
     fetchMock.mockResponses(
@@ -161,7 +190,10 @@ describe('REST client', () => {
 
   it('can request next pages until they run out', async () => {
     const params = getDefaultPageInfo();
-    const client = new RestClient(domain, 'dummy-token');
+    const client = new RestClient({
+      domain,
+      accessToken: 'dummy-token',
+    });
     const linkHeaders = [`<${params.previousPageUrl}>; rel="previous"`, `<${params.nextPageUrl}>; rel="next"`];
 
     fetchMock.mockResponses(
@@ -181,7 +213,10 @@ describe('REST client', () => {
 
   it('can request previous pages until they run out', async () => {
     const params = getDefaultPageInfo();
-    const client = new RestClient(domain, 'dummy-token');
+    const client = new RestClient({
+      domain,
+      accessToken: 'dummy-token',
+    });
     const linkHeaders = [`<${params.previousPageUrl}>; rel="previous"`, `<${params.nextPageUrl}>; rel="next"`];
 
     fetchMock.mockResponses(
@@ -203,14 +238,15 @@ describe('REST client', () => {
     Context.IS_PRIVATE_APP = true;
     Context.initialize(Context);
 
-    const client = new RestClient(domain);
+    const client = new RestClient({domain});
 
     fetchMock.mockResponseOnce(JSON.stringify(successResponse));
+
+    await expect(client.get({path: 'products'})).resolves.toEqual(buildExpectedResponse(successResponse));
 
     const customHeaders: Record<string, string> = {};
     customHeaders[ShopifyHeader.AccessToken] = 'test_secret_key';
 
-    await expect(client.get({path: 'products'})).resolves.toEqual(buildExpectedResponse(successResponse));
     assertHttpRequest({
       method: 'GET',
       domain,
@@ -220,7 +256,7 @@ describe('REST client', () => {
   });
 
   it('fails to instantiate without access token', () => {
-    expect(() => new RestClient(domain)).toThrow(ShopifyErrors.MissingRequiredArgument);
+    expect(() => new RestClient({domain})).toThrow(ShopifyErrors.MissingRequiredArgument);
   });
 });
 

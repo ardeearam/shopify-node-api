@@ -41,13 +41,19 @@ export default async function withSession({
   let client: RestClient | GraphqlClient;
   switch (clientType) {
     case 'rest':
-      client = new RestClient(session.shop, session.accessToken);
+      client = new RestClient({
+        domain: session.shop,
+        accessToken: session.accessToken,
+      });
       return {
         client,
         session,
       };
     case 'graphql':
-      client = new GraphqlClient(session.shop, session.accessToken);
+      client = new GraphqlClient({
+        domain: session.shop,
+        accessToken: session.accessToken,
+      });
       return {
         client,
         session,

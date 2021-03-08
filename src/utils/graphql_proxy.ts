@@ -38,7 +38,10 @@ export default async function graphqlProxy(userReq: http.IncomingMessage, userRe
         const options = {
           data: reqBodyObject ? reqBodyObject : reqBodyString,
         };
-        const client = new GraphqlClient(shopName, token);
+        const client = new GraphqlClient({
+          domain: shopName,
+          accessToken: token,
+        });
         const response = await client.query(options);
         body = response.body;
       } catch (err) {

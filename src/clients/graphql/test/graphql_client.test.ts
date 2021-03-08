@@ -24,7 +24,11 @@ const successResponse = {
 
 describe('GraphQL client', () => {
   it('can return response', async () => {
-    const client: GraphqlClient = new GraphqlClient(DOMAIN, 'bork');
+    const client: GraphqlClient = new GraphqlClient({
+      domain: DOMAIN,
+      accessToken: 'bork',
+    });
+
     fetchMock.mockResponseOnce(JSON.stringify(successResponse));
 
     await expect(client.query({data: QUERY})).resolves.toEqual(buildExpectedResponse(successResponse));
@@ -37,7 +41,10 @@ describe('GraphQL client', () => {
   });
 
   it('merges custom headers with default', async () => {
-    const client: GraphqlClient = new GraphqlClient(DOMAIN, 'bork');
+    const client: GraphqlClient = new GraphqlClient({
+      domain: DOMAIN,
+      accessToken: 'bork',
+    });
     const customHeader: Record<string, string> = {
       'X-Glib-Glob': 'goobers',
     };
@@ -62,13 +69,14 @@ describe('GraphQL client', () => {
     Context.IS_PRIVATE_APP = true;
     Context.initialize(Context);
 
-    const client: GraphqlClient = new GraphqlClient(DOMAIN);
+    const client: GraphqlClient = new GraphqlClient({domain: DOMAIN});
     fetchMock.mockResponseOnce(JSON.stringify(successResponse));
+
+    await expect(client.query({data: QUERY})).resolves.toEqual(buildExpectedResponse(successResponse));
 
     const customHeaders: Record<string, string> = {};
     customHeaders[ShopifyHeader.AccessToken] = 'test_secret_key';
 
-    await expect(client.query({data: QUERY})).resolves.toEqual(buildExpectedResponse(successResponse));
     assertHttpRequest({
       method: 'POST',
       domain: DOMAIN,
@@ -79,11 +87,14 @@ describe('GraphQL client', () => {
   });
 
   it('fails to instantiate without access token', () => {
-    expect(() => new GraphqlClient(DOMAIN)).toThrow(ShopifyErrors.MissingRequiredArgument);
+    expect(() => new GraphqlClient({domain: DOMAIN})).toThrow(ShopifyErrors.MissingRequiredArgument);
   });
 
   it('can handle queries with variables', async () => {
-    const client: GraphqlClient = new GraphqlClient(DOMAIN, 'bork');
+    const client: GraphqlClient = new GraphqlClient({
+      domain: DOMAIN,
+      accessToken: 'bork',
+    });
     const queryWithVariables = {
       query: `query FirstTwo($first: Int) {
         products(first: $first) {

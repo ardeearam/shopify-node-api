@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+**Note**: When we next release a major version for this library, we should remove the code for backward compatibility from the REST and GraphQL client constructors.
+
+- Refactored the constructors `Shopify.Clients.Rest` and `Shopify.Clients.Graphql` so they are easier to evolve, and added a Storefront API client
 
 ### Added
 - Allow plain objects to be returned from the `loadCallback` on `CustomSessionStorage` [#126](https://github.com/shopify/shopify-node-api/pull/126)

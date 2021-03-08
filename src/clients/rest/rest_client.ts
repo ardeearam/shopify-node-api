@@ -3,7 +3,7 @@ import querystring from 'querystring';
 import {Context} from '../../context';
 import {ShopifyHeader} from '../../base_types';
 import {HttpClient} from '../http_client/http_client';
-import {RequestParams, GetRequestParams} from '../http_client/types';
+import {ApiClientParams, RequestParams, GetRequestParams} from '../http_client/types';
 import * as ShopifyErrors from '../../error';
 
 import {RestRequestReturn, PageInfo} from './types';
@@ -11,19 +11,23 @@ import {RestRequestReturn, PageInfo} from './types';
 class RestClient extends HttpClient {
   private static LINK_HEADER_REGEXP = /<([^<]+)>; rel="([^"]+)"/;
 
-  public constructor(domain: string, readonly accessToken?: string) {
-    super(domain);
+  readonly accessToken?: string;
 
-    if (!Context.IS_PRIVATE_APP && !accessToken) {
+  public constructor(params: ApiClientParams) {
+    super(params.domain);
+
+    this.accessToken = params.accessToken;
+
+    if (!Context.IS_PRIVATE_APP && !this.accessToken) {
       throw new ShopifyErrors.MissingRequiredArgument('Missing access token when creating REST client');
     }
   }
 
   protected async request(params: RequestParams): Promise<RestRequestReturn> {
-    params.extraHeaders = {...params.extraHeaders};
-
-    params.extraHeaders[ShopifyHeader.AccessToken] = Context.IS_PRIVATE_APP
-      ? Context.API_SECRET_KEY : this.accessToken as string;
+    params.extraHeaders = {
+      [ShopifyHeader.AccessToken]: Context.IS_PRIVATE_APP ? Context.API_SECRET_KEY : this.accessToken as string,
+      ...params.extraHeaders,
+    };
 
     params.path = this.getRestPath(params.path);
 
@@ -79,8 +83,10 @@ class RestClient extends HttpClient {
   }
 
   private buildRequestParams(newPageUrl: string): GetRequestParams {
+    const pattern = `^/admin/api/[^/]+/(.*).json$`;
+
     const url = new URL(newPageUrl);
-    const path = url.pathname.replace(/^\/admin\/api\/[^/]+\/(.*)\.json$/, '$1');
+    const path = url.pathname.replace(new RegExp(pattern), '$1');
     const query = querystring.decode(url.search.replace(/^\?(.*)/, '$1')) as Record<string, string | number>;
     return {
       path,
