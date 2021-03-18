@@ -46,11 +46,17 @@ var CustomSessionStorage = /** @class */ (function () {
                     case 3:
                         if (result) {
                             if (result instanceof session_1.Session) {
+                                if (result.expires && typeof result.expires === 'string') {
+                                    result.expires = new Date(result.expires);
+                                }
                                 return [2 /*return*/, result];
                             }
                             else if (result instanceof Object && 'id' in result) {
                                 session = new session_1.Session(result.id);
                                 session = tslib_1.__assign(tslib_1.__assign({}, session), result);
+                                if (session.expires && typeof session.expires === 'string') {
+                                    session.expires = new Date(session.expires);
+                                }
                                 return [2 /*return*/, session];
                             }
                             else {
