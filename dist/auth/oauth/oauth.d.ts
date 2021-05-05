@@ -1,3 +1,5 @@
+/// <reference types="node" />
+import http from 'http';
 import { AuthQuery } from './types';
 declare const ShopifyOAuth: {
     SESSION_COOKIE_NAME: string;
@@ -12,7 +14,7 @@ declare const ShopifyOAuth: {
      *                 During final oauth request, will receive back the online access token and current online session information.
      *                 Defaults to offline access.
      */
-    beginAuth(request: any, response: any, shop: string, redirectPath: string, isOnline?: boolean): Promise<string>;
+    beginAuth(request: http.IncomingMessage, response: http.ServerResponse, shop: string, redirectPath: string, isOnline?: boolean): Promise<string>;
     /**
      * Validates the received callback query.
      * If valid, will make the subsequent request to update the current session with the appropriate access token.
@@ -23,14 +25,14 @@ declare const ShopifyOAuth: {
      * @param query Current HTTP Request Query, containing the information to be validated.
      *              Depending on framework, this may need to be cast as "unknown" before being passed.
      */
-    validateAuthCallback(request: any, response: any, query: AuthQuery): Promise<void>;
+    validateAuthCallback(request: http.IncomingMessage, response: http.ServerResponse, query: AuthQuery): any;
     /**
      * Loads the current session id from the session cookie.
      *
      * @param request HTTP request object
      * @param response HTTP response object
      */
-    getCookieSessionId(request: any, response: any): string | undefined;
+    getCookieSessionId(request: http.IncomingMessage, response: http.ServerResponse): string | undefined;
     /**
      * Builds a JWT session id from the current shop and user.
      *
@@ -51,7 +53,7 @@ declare const ShopifyOAuth: {
      * @param response HTTP response object
      * @param isOnline Whether to load online (default) or offline sessions (optional)
      */
-    getCurrentSessionId(request: any, response: any, isOnline?: boolean): string | undefined;
+    getCurrentSessionId(request: http.IncomingMessage, response: http.ServerResponse, isOnline?: boolean): string | undefined;
 };
 export { ShopifyOAuth };
 //# sourceMappingURL=oauth.d.ts.map

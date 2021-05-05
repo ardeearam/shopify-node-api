@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import http from 'http';
 /**
  * Finds and deletes the current user's session, based on the given request and response

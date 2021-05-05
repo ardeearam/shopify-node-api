@@ -41,14 +41,18 @@ const ShopifyOAuth = {
     Context.throwIfUninitialized();
     Context.throwIfPrivateApp('Cannot perform OAuth for private apps');
 
+    /*
     const cookies = new Cookies(request, response, {
       keys: [Context.API_SECRET_KEY],
       secure: true,
     });
+    */
 
     const state = nonce();
+    console.error("1");
+    console.error(state);
 
-    const session = new Session(isOnline ? uuidv4() : this.getOfflineSessionId(shop));
+    const session = new Session(isOnline ? state : this.getOfflineSessionId(shop));
     session.shop = shop;
     session.state = state;
     session.isOnline = isOnline;
@@ -61,12 +65,14 @@ const ShopifyOAuth = {
       );
     }
 
+    /*
     cookies.set(ShopifyOAuth.SESSION_COOKIE_NAME, session.id, {
       signed: true,
-      expires: new Date(Date.now() + 60000),
+      expires: new Date(Date.now() + 600000),
       sameSite: 'lax',
       secure: true,
     });
+    */
 
     /* eslint-disable @typescript-eslint/naming-convention */
     const query = {
@@ -97,23 +103,33 @@ const ShopifyOAuth = {
     request: http.IncomingMessage,
     response: http.ServerResponse,
     query: AuthQuery,
-  ): Promise<void> {
+  ): Promise {
     Context.throwIfUninitialized();
     Context.throwIfPrivateApp('Cannot perform OAuth for private apps');
+    
+   
+    console.error(2);
+    console.error(query);
+    console.error(query.state);
+    
 
     const cookies = new Cookies(request, response, {
       keys: [Context.API_SECRET_KEY],
       secure: true,
     });
 
+    /*
     const sessionCookie = this.getCookieSessionId(request, response);
     if (!sessionCookie) {
       throw new ShopifyErrors.CookieNotFound(
         `Cannot complete OAuth process. Could not find an OAuth cookie for shop url: ${query.shop}`,
       );
     }
+    */
 
-    const currentSession = await Context.SESSION_STORAGE.loadSession(sessionCookie);
+    const currentSession = await Context.SESSION_STORAGE.loadSession(query.state);
+    console.error('currentSession');
+    console.error(currentSession);
     if (!currentSession) {
       throw new ShopifyErrors.SessionNotFound(
         `Cannot complete OAuth process. No session found for the specified shop url: ${query.shop}`,
@@ -123,6 +139,7 @@ const ShopifyOAuth = {
     if (!validQuery(query, currentSession)) {
       throw new ShopifyErrors.InvalidOAuthError('Invalid OAuth callback.');
     }
+
 
     /* eslint-disable @typescript-eslint/naming-convention */
     const body = {
@@ -154,6 +171,7 @@ const ShopifyOAuth = {
       currentSession.accessToken = responseBody.access_token;
       currentSession.scope = responseBody.scope;
     }
+    
 
     // If this is an offline session, we're no longer interested in the cookie. If it is online in an embedded app, we
     // want the cookie session to expire a few seconds from now to give the app time to load itself to set up a JWT.
@@ -172,13 +190,16 @@ const ShopifyOAuth = {
       oauthSessionExpiration = new Date(Date.now() + 30000);
       currentSession.expires = oauthSessionExpiration;
     }
+    
 
+    /*
     cookies.set(ShopifyOAuth.SESSION_COOKIE_NAME, currentSession.id, {
       signed: true,
-      expires: oauthSessionExpiration,
-      sameSite: 'lax',
+      //expires: oauthSessionExpiration,
+      sameSite: 'strict',
       secure: true,
     });
+    */
 
     const sessionStored = await Context.SESSION_STORAGE.storeSession(currentSession);
 
@@ -187,6 +208,8 @@ const ShopifyOAuth = {
         'OAuth Session could not be saved. Please check your session storage functionality.',
       );
     }
+    console.error(currentSession); 
+    return currentSession;
   },
 
   /**

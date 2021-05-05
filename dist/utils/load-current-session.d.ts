@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import http from 'http';
 import { Session } from '../auth/session';
 /**

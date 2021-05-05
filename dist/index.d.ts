@@ -1,14 +1,15 @@
+/// <reference types="node" />
 import * as ShopifyErrors from './error';
 export declare const Shopify: {
     Context: import("./context").ContextInterface;
     Auth: {
         SESSION_COOKIE_NAME: string;
-        beginAuth(request: any, response: any, shop: string, redirectPath: string, isOnline?: boolean): Promise<string>;
-        validateAuthCallback(request: any, response: any, query: import("./types").AuthQuery): Promise<void>;
-        getCookieSessionId(request: any, response: any): string | undefined;
+        beginAuth(request: import("http").IncomingMessage, response: import("http").ServerResponse, shop: string, redirectPath: string, isOnline?: boolean): Promise<string>;
+        validateAuthCallback(request: import("http").IncomingMessage, response: import("http").ServerResponse, query: import("./types").AuthQuery): any;
+        getCookieSessionId(request: import("http").IncomingMessage, response: import("http").ServerResponse): string | undefined;
         getJwtSessionId(shop: string, userId: string): string;
         getOfflineSessionId(shop: string): string;
-        getCurrentSessionId(request: any, response: any, isOnline?: boolean): string | undefined;
+        getCurrentSessionId(request: import("http").IncomingMessage, response: import("http").ServerResponse, isOnline?: boolean): string | undefined;
     };
     Session: {
         Session: typeof import("./auth/session/session").Session;

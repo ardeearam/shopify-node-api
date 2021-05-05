@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import http from 'http';
 import { RegisterOptions, RegisterReturn, WebhookRegistryEntry } from './types';
 interface RegistryInterface {

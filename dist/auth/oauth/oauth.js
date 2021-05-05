@@ -2,7 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var tslib_1 = require("tslib");
 var querystring_1 = tslib_1.__importDefault(require("querystring"));
-var uuid_1 = require("uuid");
 var cookies_1 = tslib_1.__importDefault(require("cookies"));
 var context_1 = require("../../context");
 var nonce_1 = tslib_1.__importDefault(require("../../utils/nonce"));
@@ -30,18 +29,16 @@ var ShopifyOAuth = {
     beginAuth: function (request, response, shop, redirectPath, isOnline) {
         if (isOnline === void 0) { isOnline = false; }
         return tslib_1.__awaiter(this, void 0, void 0, function () {
-            var cookies, state, session, sessionStored, query, queryString;
+            var state, session, sessionStored, query, queryString;
             return tslib_1.__generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         context_1.Context.throwIfUninitialized();
                         context_1.Context.throwIfPrivateApp('Cannot perform OAuth for private apps');
-                        cookies = new cookies_1.default(request, response, {
-                            keys: [context_1.Context.API_SECRET_KEY],
-                            secure: true,
-                        });
                         state = nonce_1.default();
-                        session = new session_1.Session(isOnline ? uuid_1.v4() : this.getOfflineSessionId(shop));
+                        console.error("1");
+                        console.error(state);
+                        session = new session_1.Session(isOnline ? state : this.getOfflineSessionId(shop));
                         session.shop = shop;
                         session.state = state;
                         session.isOnline = isOnline;
@@ -51,12 +48,6 @@ var ShopifyOAuth = {
                         if (!sessionStored) {
                             throw new ShopifyErrors.SessionStorageError('OAuth Session could not be saved. Please check your session storage functionality.');
                         }
-                        cookies.set(ShopifyOAuth.SESSION_COOKIE_NAME, session.id, {
-                            signed: true,
-                            expires: new Date(Date.now() + 60000),
-                            sameSite: 'lax',
-                            secure: true,
-                        });
                         query = {
                             client_id: context_1.Context.API_KEY,
                             scope: context_1.Context.SCOPES.toString(),
@@ -82,23 +73,24 @@ var ShopifyOAuth = {
      */
     validateAuthCallback: function (request, response, query) {
         return tslib_1.__awaiter(this, void 0, void 0, function () {
-            var cookies, sessionCookie, currentSession, body, postParams, client, postResponse, responseBody, access_token, scope, rest, sessionExpiration, responseBody, oauthSessionExpiration, onlineInfo, jwtSessionId, jwtSession, sessionStored;
+            var cookies, currentSession, body, postParams, client, postResponse, responseBody, access_token, scope, rest, sessionExpiration, responseBody, oauthSessionExpiration, onlineInfo, jwtSessionId, jwtSession, sessionStored;
             return tslib_1.__generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         context_1.Context.throwIfUninitialized();
                         context_1.Context.throwIfPrivateApp('Cannot perform OAuth for private apps');
+                        console.error(2);
+                        console.error(query);
+                        console.error(query.state);
                         cookies = new cookies_1.default(request, response, {
                             keys: [context_1.Context.API_SECRET_KEY],
                             secure: true,
                         });
-                        sessionCookie = this.getCookieSessionId(request, response);
-                        if (!sessionCookie) {
-                            throw new ShopifyErrors.CookieNotFound("Cannot complete OAuth process. Could not find an OAuth cookie for shop url: " + query.shop);
-                        }
-                        return [4 /*yield*/, context_1.Context.SESSION_STORAGE.loadSession(sessionCookie)];
+                        return [4 /*yield*/, context_1.Context.SESSION_STORAGE.loadSession(query.state)];
                     case 1:
                         currentSession = _a.sent();
+                        console.error('currentSession');
+                        console.error(currentSession);
                         if (!currentSession) {
                             throw new ShopifyErrors.SessionNotFound("Cannot complete OAuth process. No session found for the specified shop url: " + query.shop);
                         }
@@ -149,20 +141,14 @@ var ShopifyOAuth = {
                         oauthSessionExpiration = new Date(Date.now() + 30000);
                         currentSession.expires = oauthSessionExpiration;
                         _a.label = 5;
-                    case 5:
-                        cookies.set(ShopifyOAuth.SESSION_COOKIE_NAME, currentSession.id, {
-                            signed: true,
-                            expires: oauthSessionExpiration,
-                            sameSite: 'lax',
-                            secure: true,
-                        });
-                        return [4 /*yield*/, context_1.Context.SESSION_STORAGE.storeSession(currentSession)];
+                    case 5: return [4 /*yield*/, context_1.Context.SESSION_STORAGE.storeSession(currentSession)];
                     case 6:
                         sessionStored = _a.sent();
                         if (!sessionStored) {
                             throw new ShopifyErrors.SessionStorageError('OAuth Session could not be saved. Please check your session storage functionality.');
                         }
-                        return [2 /*return*/];
+                        console.error(currentSession);
+                        return [2 /*return*/, currentSession];
                 }
             });
         });
